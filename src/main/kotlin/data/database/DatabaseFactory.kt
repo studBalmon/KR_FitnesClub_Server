@@ -1,6 +1,7 @@
 package com.example.data.database
 
 import com.example.data.seed.UserTypeSeeder
+import com.example.data.seed.UserSeeder
 import io.ktor.server.application.*
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils

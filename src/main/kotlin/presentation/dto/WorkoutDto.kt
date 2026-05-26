@@ -1,5 +1,8 @@
 package presentation.dto
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class WorkoutRequest(
     val coachTypeId: Int,
     val name: String,

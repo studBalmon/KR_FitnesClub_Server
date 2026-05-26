@@ -1,7 +1,9 @@
-package com.example.plugins.di
+package plugins.di
 
 import com.example.data.repository.UserRepositoryImpl
+import data.repository.WorkoutRepositoryImpl
 import domain.repository.UserRepository
+import domain.repository.WorkoutRepository
 import domain.usecase.CreateWorkoutUseCase
 import domain.usecase.DeleteWorkoutUseCase
 import domain.usecase.GetAllWorkoutsUseCase
@@ -14,6 +16,7 @@ val appModule = module {
 
     // Repository
     single<UserRepository> { UserRepositoryImpl() }
+    single<WorkoutRepository> { WorkoutRepositoryImpl() }
 
     // UseCases
     single { LoginUserUseCase(get()) }

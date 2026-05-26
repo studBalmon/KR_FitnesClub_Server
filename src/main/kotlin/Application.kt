@@ -2,7 +2,7 @@ package com.example
 
 import io.ktor.server.application.*
 import com.example.data.database.DatabaseFactory
-import com.example.plugins.di.appModule
+import plugins.di.appModule
 import presentation.routes.configureRouting
 import org.koin.ktor.plugin.Koin
 import org.koin.logger.slf4jLogger

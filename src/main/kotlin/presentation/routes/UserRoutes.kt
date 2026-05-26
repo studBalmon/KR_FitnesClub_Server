@@ -2,7 +2,7 @@ package com.example.presentation.routes
 
 import com.example.data.repository.UserRepositoryImpl
 import domain.model.User
-import com.example.presentation.dto.CreateUserRequest
+import presentation.dto.CreateUserRequest
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -24,7 +24,7 @@ fun Route.userRoutes() {
                     phone = request.phone,
                     email = request.email,
                     userTypeId = request.userTypeId,
-                    passwordHash = request.password // позже заменим на hash
+                    passwordHash = request.password
                 )
             )
 

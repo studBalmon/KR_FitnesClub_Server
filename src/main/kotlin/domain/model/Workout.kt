@@ -1,5 +1,8 @@
 package domain.model
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class Workout(
     val id: Int,
     val coachTypeId: Int,
