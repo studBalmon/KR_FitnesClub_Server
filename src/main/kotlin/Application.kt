@@ -3,7 +3,7 @@ package com.example
 import io.ktor.server.application.*
 import com.example.data.database.DatabaseFactory
 import com.example.plugins.di.appModule
-import com.example.presentation.routes.configureRouting
+import presentation.routes.configureRouting
 import org.koin.ktor.plugin.Koin
 import org.koin.logger.slf4jLogger
 import plugins.configureSecurity
