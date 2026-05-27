@@ -5,9 +5,18 @@ import domain.model.Client
 import domain.repository.ClientRepository
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.javatime.timestamp
 import org.jetbrains.exposed.sql.transactions.transaction
+import java.time.LocalDate
 
 class ClientRepositoryImpl : ClientRepository {
+
+    override fun create(userId: Int): Int = transaction {
+        ClientTable.insert {
+            it[ClientTable.userId] = userId
+            it[ClientTable.cardEndDate] = LocalDate.now().plusMonths(1)
+        } get ClientTable.id
+    }
 
     override fun getByUserId(userId: Int): Client? = transaction {
         ClientTable

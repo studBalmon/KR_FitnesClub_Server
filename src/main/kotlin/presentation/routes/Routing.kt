@@ -22,9 +22,18 @@ fun Application.configureRouting() {
 
     val addClientToBookingUseCase by inject<AddClientToBookingUseCase>()
     val getClientByUserIdUseCase by inject<GetClientByUserIdUseCase>()
+    val getCoachByUserIdUseCase by inject<GetCoachByUserIdUseCase>()
+    val getBookingsByCoachUseCase by inject<GetBookingsByCoachUseCase>()
+
+    val createCoachByUserUseCase by inject<CreateCoachByUserUseCase>()
 
     routing {
-        authRoutes(loginUserUseCase, registerUserUseCase)
+
+        authRoutes(
+            loginUserUseCase,
+            registerUserUseCase,
+            createCoachByUserUseCase
+        )
 
         workoutRoutes(
             createWorkoutUseCase,
@@ -39,7 +48,9 @@ fun Application.configureRouting() {
             getBookingsByClientUseCase,
             deleteBookingUseCase,
             addClientToBookingUseCase,
-            getClientByUserIdUseCase
+            getClientByUserIdUseCase,
+            getCoachByUserIdUseCase,
+            getBookingsByCoachUseCase
         )
     }
 }

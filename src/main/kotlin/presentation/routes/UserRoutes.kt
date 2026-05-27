@@ -6,6 +6,7 @@ import presentation.dto.CreateUserRequest
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import presentation.util.role
 
 fun Route.userRoutes() {
 
@@ -64,6 +65,12 @@ fun Route.userRoutes() {
         }
 
         delete("/{id}") {
+            val role = call.role()
+
+            if (role != "ADMIN") {
+                call.respond(mapOf("error" to "Forbidden"))
+                return@delete
+            }
             val id = call.parameters["id"]!!.toInt()
             val deleted = repo.delete(id)
 

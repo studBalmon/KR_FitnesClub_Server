@@ -1,13 +1,19 @@
 package domain.usecase
 
+import com.example.util.PasswordHasher
 import domain.repository.UserRepository
 import domain.model.User
-import com.example.util.PasswordHasher
+
+data class LoginResult(
+    val user: User,
+    val role: String
+)
 
 class LoginUserUseCase(
     private val repository: UserRepository
 ) {
-    operator fun invoke(email: String, password: String): User? {
+    operator fun invoke(email: String, password: String): LoginResult? {
+
         val user = repository.findByEmail(email) ?: return null
 
         val isValid = PasswordHasher.verify(
@@ -15,6 +21,13 @@ class LoginUserUseCase(
             user.passwordHash
         )
 
-        return if (isValid) user else null
+        if (!isValid) return null
+
+        val role = repository.getRoleByUserId(user.id)
+
+        return LoginResult(
+            user = user,
+            role = role
+        )
     }
 }

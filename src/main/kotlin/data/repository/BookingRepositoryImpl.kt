@@ -22,33 +22,65 @@ class BookingRepositoryImpl : BookingRepository {
         } get BookingTable.id
     }
 
+    // 🔥 ONE QUERY VERSION (NO N+1)
     override fun getAll(): List<Booking> = transaction {
+
+        val clientsMap = BookingClientTable
+            .selectAll()
+            .groupBy { it[BookingClientTable.bookingId] }
+            .mapValues { entry ->
+                entry.value.map { it[BookingClientTable.clientId] }
+            }
+
         BookingTable.selectAll().map { row ->
             row.toBooking(
-                clients = getClientsForBooking(row[BookingTable.id])
+                clients = clientsMap[row[BookingTable.id]] ?: emptyList()
             )
         }
     }
 
     override fun getById(id: Int): Booking? = transaction {
-        BookingTable.selectAll().where { BookingTable.id eq id }
-            .map { row ->
-                row.toBooking(
-                    clients = getClientsForBooking(row[BookingTable.id])
-                )
-            }
+
+        val clients = BookingClientTable
+            .selectAll().where { BookingClientTable.bookingId eq id }
+            .map { it[BookingClientTable.clientId] }
+
+        BookingTable
+            .selectAll().where { BookingTable.id eq id }
+            .map { it.toBooking(clients) }
             .singleOrNull()
     }
 
     override fun getByClient(clientId: Int): List<Booking> = transaction {
 
-        (BookingTable innerJoin BookingClientTable)
+        val bookingIds = BookingClientTable
             .selectAll().where { BookingClientTable.clientId eq clientId }
-            .map { row ->
-                row.toBooking(
-                    clients = getClientsForBooking(row[BookingTable.id])
-                )
+            .map { it[BookingClientTable.bookingId] }
+
+        val clientsMap = BookingClientTable
+            .selectAll()
+            .groupBy { it[BookingClientTable.bookingId] }
+            .mapValues { entry ->
+                entry.value.map { it[BookingClientTable.clientId] }
             }
+
+        BookingTable
+            .selectAll().where { BookingTable.id inList bookingIds }
+            .map { it.toBooking(clientsMap[it[BookingTable.id]] ?: emptyList()) }
+    }
+
+    override fun getByCoach(coachId: Int): List<Booking> = transaction {
+
+        val clientsMap = BookingClientTable
+            .selectAll()
+            .groupBy { it[BookingClientTable.bookingId] }
+            .mapValues { entry ->
+                entry.value.map { it[BookingClientTable.clientId] }
+            }
+
+        BookingTable
+            .selectAll().where { BookingTable.coachId eq coachId }
+            .map { it.toBooking(clientsMap[it[BookingTable.id]] ?: emptyList()) }
     }
 
     override fun delete(id: Int): Boolean = transaction {
@@ -81,12 +113,6 @@ class BookingRepositoryImpl : BookingRepository {
         }
 
         true
-    }
-
-    private fun getClientsForBooking(bookingId: Int): List<Int> = transaction {
-        BookingClientTable
-            .selectAll().where { BookingClientTable.bookingId eq bookingId }
-            .map { it[BookingClientTable.clientId] }
     }
 
     private fun ResultRow.toBooking(clients: List<Int>) = Booking(

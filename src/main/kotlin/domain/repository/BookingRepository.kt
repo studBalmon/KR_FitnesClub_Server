@@ -15,4 +15,6 @@ interface BookingRepository {
     fun delete(id: Int): Boolean
 
     fun addClientToBooking(bookingId: Int, clientId: Int): Boolean
+
+    fun getByCoach(coachId: Int): List<Booking>
 }

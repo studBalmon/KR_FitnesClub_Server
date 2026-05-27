@@ -3,11 +3,11 @@ package presentation.routes
 import domain.model.Workout
 import domain.usecase.*
 import presentation.dto.WorkoutRequest
-import io.ktor.server.application.*
 import io.ktor.server.auth.authenticate
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import presentation.util.role
 
 fun Route.workoutRoutes(
     createWorkoutUseCase: CreateWorkoutUseCase,
@@ -15,10 +15,12 @@ fun Route.workoutRoutes(
     getWorkoutByIdUseCase: GetWorkoutByIdUseCase,
     deleteWorkoutUseCase: DeleteWorkoutUseCase
 ) {
+
     authenticate("auth-jwt") {
 
         route("/workouts") {
 
+            // ВСЕ
             get {
                 call.respond(getAllWorkoutsUseCase())
             }
@@ -34,7 +36,15 @@ fun Route.workoutRoutes(
                 }
             }
 
+            // COACH + ADMIN
             post {
+                val role = call.role()
+
+                if (role != "COACH" && role != "ADMIN") {
+                    call.respond(mapOf("error" to "Forbidden"))
+                    return@post
+                }
+
                 val request = call.receive<WorkoutRequest>()
 
                 val id = createWorkoutUseCase(
@@ -50,7 +60,15 @@ fun Route.workoutRoutes(
                 call.respond(mapOf("id" to id))
             }
 
+            // ADMIN
             delete("/{id}") {
+                val role = call.role()
+
+                if (role != "ADMIN") {
+                    call.respond(mapOf("error" to "Forbidden"))
+                    return@delete
+                }
+
                 val id = call.parameters["id"]!!.toInt()
                 val deleted = deleteWorkoutUseCase(id)
 

@@ -1,6 +1,7 @@
 package com.example.data.repository
 
 import com.example.data.tables.UserTable
+import com.example.data.tables.UserTypesTable
 import domain.model.User
 import domain.repository.UserRepository
 import org.jetbrains.exposed.sql.*
@@ -70,5 +71,12 @@ class UserRepositoryImpl : UserRepository {
                 )
             }
             .singleOrNull()
+    }
+
+    override fun getRoleByUserId(userId: Int): String = transaction {
+
+        (UserTable innerJoin UserTypesTable)
+            .selectAll().where { UserTable.id eq userId }
+            .single()[UserTypesTable.name]
     }
 }

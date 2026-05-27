@@ -15,4 +15,6 @@ interface UserRepository {
     fun delete(id: Int): Boolean
 
     fun findByEmail(email: String): User?
+
+    fun getRoleByUserId(userId: Int): String
 }
