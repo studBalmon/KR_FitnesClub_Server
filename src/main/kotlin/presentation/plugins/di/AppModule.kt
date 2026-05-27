@@ -30,14 +30,12 @@ import org.koin.dsl.module
 
 val appModule = module {
 
-    // Repository
     single<UserRepository> { UserRepositoryImpl() }
     single<WorkoutRepository> { WorkoutRepositoryImpl() }
     single<BookingRepository> { BookingRepositoryImpl() }
     single<ClientRepository> { ClientRepositoryImpl() }
     single<CoachRepository> { CoachRepositoryImpl() }
 
-    // UseCases
     single { LoginUserUseCase(get()) }
     single { RegisterUserUseCase(get(), get()) }
     single { CreateWorkoutUseCase(get()) }

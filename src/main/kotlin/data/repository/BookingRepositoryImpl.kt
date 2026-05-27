@@ -22,7 +22,6 @@ class BookingRepositoryImpl : BookingRepository {
         } get BookingTable.id
     }
 
-    // 🔥 ONE QUERY VERSION (NO N+1)
     override fun getAll(): List<Booking> = transaction {
 
         val clientsMap = BookingClientTable

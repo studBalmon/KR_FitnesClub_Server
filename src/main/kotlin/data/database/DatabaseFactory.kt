@@ -19,7 +19,6 @@ object DatabaseFactory {
         val user = environment.config.property("database.user").getString()
         val password = environment.config.property("database.password").getString()
 
-        // 1. Подключение
         Database.connect(
             url = url,
             driver = driver,
@@ -27,7 +26,6 @@ object DatabaseFactory {
             password = password
         )
 
-        // 2. Создание таблиц
         transaction {
             SchemaUtils.create(
                 UserTypesTable,
