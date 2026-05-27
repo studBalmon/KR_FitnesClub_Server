@@ -7,11 +7,11 @@ object BookingTable : Table("bookings") {
 
     val id = integer("id").autoIncrement()
 
-    val clientId = reference("client_id", ClientTable.id)
-
     val coachId = reference("coach_id", CoachTable.id)
 
     val workoutId = reference("workout_id", WorkoutTable.id)
+
+    val slots = integer("slots")
 
     val name = varchar("name", 255)
 

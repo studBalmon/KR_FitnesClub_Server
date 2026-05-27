@@ -8,6 +8,7 @@ import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
 
 import com.example.data.tables.*
+import data.tables.BookingClientTable
 
 object DatabaseFactory {
 
@@ -35,7 +36,8 @@ object DatabaseFactory {
                 CoachTable,
                 WorkoutTable,
                 ClientTable,
-                BookingTable
+                BookingTable,
+                BookingClientTable
             )
         }
 

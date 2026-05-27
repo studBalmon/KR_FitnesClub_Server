@@ -13,7 +13,6 @@ fun Route.userRoutes() {
 
     route("/users") {
 
-        // CREATE
         post {
             val request = call.receive<CreateUserRequest>()
 
@@ -31,12 +30,10 @@ fun Route.userRoutes() {
             call.respond(mapOf("id" to userId))
         }
 
-        // READ ALL
         get {
             call.respond(repo.getAll())
         }
 
-        // READ BY ID
         get("/{id}") {
             val id = call.parameters["id"]!!.toInt()
             val user = repo.getById(id)
@@ -47,7 +44,6 @@ fun Route.userRoutes() {
                 call.respondText("User not found")
         }
 
-        // UPDATE
         put("/{id}") {
             val id = call.parameters["id"]!!.toInt()
             val request = call.receive<CreateUserRequest>()
@@ -67,7 +63,6 @@ fun Route.userRoutes() {
             call.respond(mapOf("updated" to updated))
         }
 
-        // DELETE
         delete("/{id}") {
             val id = call.parameters["id"]!!.toInt()
             val deleted = repo.delete(id)
