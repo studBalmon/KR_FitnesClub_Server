@@ -26,6 +26,11 @@ class ClientRepositoryImpl : ClientRepository {
             .singleOrNull()
     }
 
+    override fun deleteByUserId(userId: Int) = transaction {
+        ClientTable.deleteWhere { ClientTable.userId eq userId }
+        Unit
+    }
+
     override fun getById(clientId: Int): Client? = transaction {
         ClientTable
             .selectAll()

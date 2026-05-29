@@ -2,7 +2,9 @@ package presentation.routes
 
 import com.example.presentation.routes.userRoutes
 import domain.repository.ClientRepository
+import domain.repository.CoachRepository
 import domain.repository.UserRepository
+import domain.repository.WorkoutRepository
 import domain.usecase.*
 import domain.usecase.LeaveBookingUseCase
 import io.ktor.server.application.*
@@ -37,6 +39,8 @@ fun Application.configureRouting() {
     val getUserByIdUseCase by inject<GetUserByIdUseCase>()
     val userRepository by inject<UserRepository>()
     val clientRepository by inject<ClientRepository>()
+    val coachRepository by inject<CoachRepository>()
+    val workoutRepository by inject<WorkoutRepository>()
     val updateBookingUseCase by inject<UpdateBookingUseCase>()
     val getParticipantsByBookingUseCase by inject<GetParticipantsByBookingUseCase>()
 
@@ -76,6 +80,13 @@ fun Application.configureRouting() {
             getUserByIdUseCase,
             userRepository,
             clientRepository
+        )
+
+        adminRoutes(
+            userRepository,
+            clientRepository,
+            coachRepository,
+            workoutRepository
         )
     }
 }

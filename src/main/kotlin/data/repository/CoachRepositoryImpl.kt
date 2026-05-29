@@ -1,19 +1,13 @@
 package data.repository
 
 import com.example.data.tables.CoachTable
-import com.example.data.tables.UserTable
-import com.example.data.tables.UserTable.email
-import com.example.data.tables.UserTable.fio
-import com.example.data.tables.UserTable.passwordHash
-import com.example.data.tables.UserTable.phone
-import com.example.data.tables.UserTable.userTypeId
-import domain.model.User
+import com.example.data.tables.CoachTypeTable
 import domain.repository.CoachRepository
-import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 
-class CoachRepositoryImpl: CoachRepository {
+class CoachRepositoryImpl : CoachRepository {
 
     override fun create(userId: Int, coachTypeId: Int): Int = transaction {
         CoachTable.insert {
@@ -23,9 +17,47 @@ class CoachRepositoryImpl: CoachRepository {
     }
 
     override fun getByUserId(userId: Int): Int? = transaction {
-        CoachTable
-            .selectAll().where { CoachTable.userId eq userId }
+        CoachTable.selectAll()
+            .where { CoachTable.userId eq userId }
             .map { it[CoachTable.id] }
             .singleOrNull()
+    }
+
+    override fun getCoachTypeByUserId(userId: Int): Int? = transaction {
+        CoachTable.selectAll()
+            .where { CoachTable.userId eq userId }
+            .map { it[CoachTable.coachTypeId] }
+            .singleOrNull()
+    }
+
+    override fun updateCoachType(userId: Int, newCoachTypeId: Int) = transaction {
+        CoachTable.update({ CoachTable.userId eq userId }) {
+            it[CoachTable.coachTypeId] = newCoachTypeId
+        }
+        Unit
+    }
+
+    override fun deleteByUserId(userId: Int) = transaction {
+        CoachTable.deleteWhere { CoachTable.userId eq userId }
+        Unit
+    }
+
+    override fun getAllCoachTypes(): List<Pair<Int, String>> = transaction {
+        CoachTypeTable.selectAll()
+            .map { it[CoachTypeTable.id] to it[CoachTypeTable.name] }
+    }
+
+    override fun createCoachTypeName(name: String): Int = transaction {
+        CoachTypeTable.insert { it[CoachTypeTable.name] = name } get CoachTypeTable.id
+    }
+
+    override fun updateCoachTypeName(id: Int, name: String): Boolean = transaction {
+        CoachTypeTable.update({ CoachTypeTable.id eq id }) {
+            it[CoachTypeTable.name] = name
+        } > 0
+    }
+
+    override fun deleteCoachTypeById(id: Int): Boolean = transaction {
+        CoachTypeTable.deleteWhere { CoachTypeTable.id eq id } > 0
     }
 }

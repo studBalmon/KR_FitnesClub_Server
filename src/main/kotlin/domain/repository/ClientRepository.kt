@@ -10,4 +10,5 @@ interface ClientRepository {
 
     fun getById(clientId: Int): Client?
 
+    fun deleteByUserId(userId: Int)
 }
