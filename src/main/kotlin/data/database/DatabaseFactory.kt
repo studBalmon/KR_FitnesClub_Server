@@ -14,10 +14,12 @@ object DatabaseFactory {
 
     fun init(environment: ApplicationEnvironment) {
 
-        val url = environment.config.property("database.url").getString()
-        val driver = environment.config.property("database.driver").getString()
-        val user = environment.config.property("database.user").getString()
-        val password = environment.config.property("database.password").getString()
+        val config = environment.config
+
+        val url = config.property("database.url").getString()
+        val user = config.property("database.user").getString()
+        val password = config.property("database.password").getString()
+        val driver = config.property("database.driver").getString()
 
         Database.connect(
             url = url,

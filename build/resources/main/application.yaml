@@ -5,14 +5,15 @@ ktor:
 
   deployment:
     port: 8080
+    host: "0.0.0.0"
     watch:
       - classes
       - resources
 
 database:
-  url: "jdbc:postgresql://localhost:5432/postgres"
-  user: "postgres"
-  password: "Ab27iS18is"
+  url: ${DB_URL:jdbc:postgresql://localhost:5432/postgres}
+  user: ${DB_USER:postgres}
+  password: ${DB_PASSWORD:postgres}
   driver: "org.postgresql.Driver"
 
 logging:

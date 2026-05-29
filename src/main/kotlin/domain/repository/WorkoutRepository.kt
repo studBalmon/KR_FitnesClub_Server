@@ -13,4 +13,6 @@ interface WorkoutRepository {
     fun update(id: Int, workout: Workout): Boolean
 
     fun delete(id: Int): Boolean
+
+    fun searchByName(query: String): List<Workout>
 }

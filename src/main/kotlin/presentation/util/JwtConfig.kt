@@ -6,11 +6,11 @@ import java.util.*
 
 object JwtConfig {
 
-    private const val secret = "super-secret-key-change-me"
+    private val secret = System.getenv("JWT_SECRET") ?: "super-secret-key-change-me"
     private const val issuer = "fitness-app"
     private const val audience = "fitness-client"
 
-    private val algorithm = Algorithm.HMAC256(secret)
+    private val algorithm get() = Algorithm.HMAC256(secret)
 
     fun generateToken(userId: Long, email: String, role: String): String {
         return JWT.create()

@@ -3,6 +3,7 @@ package presentation.routes
 import domain.model.Booking
 import domain.usecase.*
 import presentation.dto.BookingRequest
+import io.ktor.http.*
 import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -13,12 +14,15 @@ import presentation.util.userId
 fun Route.bookingRoutes(
     createBookingUseCase: CreateBookingUseCase,
     getBookingsUseCase: GetBookingsUseCase,
+    getBookingByIdUseCase: GetBookingByIdUseCase,
     getBookingsByClientUseCase: GetBookingsByClientUseCase,
     deleteBookingUseCase: DeleteBookingUseCase,
     addClientToBookingUseCase: AddClientToBookingUseCase,
+    leaveBookingUseCase: LeaveBookingUseCase,
     getClientByUserIdUseCase: GetClientByUserIdUseCase,
     getCoachByUserIdUseCase: GetCoachByUserIdUseCase,
-    getBookingsByCoachUseCase: GetBookingsByCoachUseCase
+    getBookingsByCoachUseCase: GetBookingsByCoachUseCase,
+    searchBookingsByNameUseCase: SearchBookingsByNameUseCase
 ) {
 
     authenticate("auth-jwt") {
@@ -81,6 +85,31 @@ fun Route.bookingRoutes(
                 call.respond(mapOf("id" to id))
             }
 
+            get("/{id}") {
+                val id = call.parameters["id"]!!.toInt()
+                val booking = getBookingByIdUseCase(id)
+                if (booking != null) call.respond(booking)
+                else call.respond(HttpStatusCode.NotFound, mapOf("error" to "Booking not found"))
+            }
+
+            get("/search") {
+                val role = call.role()
+
+                if (role == null) {
+                    call.respond(mapOf("error" to "Unauthorized"))
+                    return@get
+                }
+
+                val query = call.request.queryParameters["q"]
+
+                if (query.isNullOrBlank()) {
+                    call.respond(mapOf("error" to "Query is empty"))
+                    return@get
+                }
+
+                call.respond(searchBookingsByNameUseCase(query))
+            }
+
             // CLIENT
             post("/{id}/join") {
 
@@ -99,7 +128,30 @@ fun Route.bookingRoutes(
 
                 val success = addClientToBookingUseCase(bookingId, clientId)
 
-                call.respond(mapOf("success" to success))
+                if (success) {
+                    call.respond(mapOf("message" to "Вы успешно записаны"))
+                } else {
+                    call.respond(
+                        HttpStatusCode.Conflict,
+                        mapOf("error" to "Вы уже записаны на это занятие или нет свободных мест")
+                    )
+                }
+            }
+
+            // CLIENT — отменить свою запись
+            delete("/{id}/join") {
+                if (call.role() != "CLIENT") {
+                    call.respond(HttpStatusCode.Forbidden, mapOf("error" to "Forbidden"))
+                    return@delete
+                }
+                val userId = call.userId()
+                    ?: return@delete call.respond(HttpStatusCode.Unauthorized, mapOf("error" to "Unauthorized"))
+                val clientId = getClientByUserIdUseCase(userId)
+                    ?: return@delete call.respond(HttpStatusCode.NotFound, mapOf("error" to "Client not found"))
+                val bookingId = call.parameters["id"]!!.toInt()
+                val removed = leaveBookingUseCase(bookingId, clientId)
+                if (removed) call.respond(mapOf("message" to "Запись отменена"))
+                else call.respond(HttpStatusCode.NotFound, mapOf("error" to "Вы не записаны на это занятие"))
             }
 
             // ADMIN

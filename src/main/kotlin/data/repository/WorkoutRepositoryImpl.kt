@@ -49,4 +49,14 @@ class WorkoutRepositoryImpl : WorkoutRepository {
         description = this[WorkoutTable.description],
         duration = this[WorkoutTable.duration]
     )
+
+    override fun searchByName(query: String): List<Workout> = transaction {
+
+        val pattern = "%${query.lowercase()}%"
+
+        WorkoutTable
+            .selectAll()
+            .where { WorkoutTable.name.lowerCase() like pattern }
+            .map { it.toWorkout() }
+    }
 }

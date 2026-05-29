@@ -13,7 +13,8 @@ fun Route.workoutRoutes(
     createWorkoutUseCase: CreateWorkoutUseCase,
     getAllWorkoutsUseCase: GetAllWorkoutsUseCase,
     getWorkoutByIdUseCase: GetWorkoutByIdUseCase,
-    deleteWorkoutUseCase: DeleteWorkoutUseCase
+    deleteWorkoutUseCase: DeleteWorkoutUseCase,
+    searchWorkoutsByNameUseCase: SearchWorkoutsByNameUseCase
 ) {
 
     authenticate("auth-jwt") {
@@ -23,6 +24,18 @@ fun Route.workoutRoutes(
             // ВСЕ
             get {
                 call.respond(getAllWorkoutsUseCase())
+            }
+
+            get("/search") {
+
+                val query = call.request.queryParameters["q"]
+
+                if (query.isNullOrBlank()) {
+                    call.respond(mapOf("error" to "Query is empty"))
+                    return@get
+                }
+
+                call.respond(searchWorkoutsByNameUseCase(query))
             }
 
             get("/{id}") {

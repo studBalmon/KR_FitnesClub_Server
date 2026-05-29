@@ -87,6 +87,13 @@ class BookingRepositoryImpl : BookingRepository {
         BookingTable.deleteWhere { BookingTable.id eq id } > 0
     }
 
+    override fun removeClientFromBooking(bookingId: Int, clientId: Int): Boolean = transaction {
+        BookingClientTable.deleteWhere {
+            (BookingClientTable.bookingId eq bookingId) and
+                    (BookingClientTable.clientId eq clientId)
+        } > 0
+    }
+
     override fun addClientToBooking(bookingId: Int, clientId: Int): Boolean = transaction {
 
         val exists = BookingClientTable.selectAll().where {
@@ -124,4 +131,25 @@ class BookingRepositoryImpl : BookingRepository {
         time = this[BookingTable.time],
         clients = clients
     )
+
+    override fun searchByName(query: String): List<Booking> = transaction {
+
+        val pattern = "%${query.lowercase()}%"
+
+        val clientsMap = BookingClientTable
+            .selectAll()
+            .groupBy { it[BookingClientTable.bookingId] }
+            .mapValues { entry ->
+                entry.value.map { it[BookingClientTable.clientId] }
+            }
+
+        BookingTable
+            .selectAll()
+            .where { BookingTable.name.lowerCase() like pattern }
+            .map {
+                it.toBooking(
+                    clients = clientsMap[it[BookingTable.id]] ?: emptyList()
+                )
+            }
+    }
 }
