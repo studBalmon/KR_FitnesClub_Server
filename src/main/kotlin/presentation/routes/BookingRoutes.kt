@@ -125,24 +125,28 @@ fun Route.bookingRoutes(
                 call.respond(HttpStatusCode.Created, mapOf("id" to id))
             }
 
-            // ── Редактировать занятие (тренер, только своё) ───────────────────
+            // ── Редактировать занятие (тренер — только своё; admin — любое) ──────
             patch("/{id}") {
-                if (call.role() != "COACH" && call.role() != "ADMIN") {
+                val role = call.role()
+                if (role != "COACH" && role != "ADMIN") {
                     call.respond(HttpStatusCode.Forbidden, mapOf("error" to "Forbidden"))
                     return@patch
                 }
-                val userId = call.userId()
-                    ?: return@patch call.respond(HttpStatusCode.Unauthorized, mapOf("error" to "Unauthorized"))
-                val coachId = getCoachByUserIdUseCase(userId)
-                    ?: return@patch call.respond(HttpStatusCode.NotFound, mapOf("error" to "Coach not found"))
 
                 val id = call.parameters["id"]!!.toInt()
                 val existing = getBookingByIdUseCase(id)
                     ?: return@patch call.respond(HttpStatusCode.NotFound, mapOf("error" to "Booking not found"))
 
-                if (existing.coachId != coachId) {
-                    call.respond(HttpStatusCode.Forbidden, mapOf("error" to "Не ваше занятие"))
-                    return@patch
+                // Тренер может редактировать только своё занятие
+                if (role == "COACH") {
+                    val userId = call.userId()
+                        ?: return@patch call.respond(HttpStatusCode.Unauthorized, mapOf("error" to "Unauthorized"))
+                    val coachId = getCoachByUserIdUseCase(userId)
+                        ?: return@patch call.respond(HttpStatusCode.NotFound, mapOf("error" to "Coach not found"))
+                    if (existing.coachId != coachId) {
+                        call.respond(HttpStatusCode.Forbidden, mapOf("error" to "Не ваше занятие"))
+                        return@patch
+                    }
                 }
 
                 val request = call.receive<CoachBookingRequest>()
