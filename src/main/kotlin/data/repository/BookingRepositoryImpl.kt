@@ -132,6 +132,15 @@ class BookingRepositoryImpl : BookingRepository {
         clients = clients
     )
 
+    override fun update(booking: Booking): Boolean = transaction {
+        BookingTable.update({ BookingTable.id eq booking.id }) {
+            it[slots] = booking.slots
+            it[name] = booking.name
+            it[extra] = booking.extra
+            it[time] = booking.time
+        } > 0
+    }
+
     override fun searchByName(query: String): List<Booking> = transaction {
 
         val pattern = "%${query.lowercase()}%"

@@ -19,5 +19,7 @@ interface BookingRepository {
 
     fun getByCoach(coachId: Int): List<Booking>
 
+    fun update(booking: Booking): Boolean
+
     fun searchByName(query: String): List<Booking>
 }

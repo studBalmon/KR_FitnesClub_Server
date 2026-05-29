@@ -39,7 +39,8 @@ fun Route.userRoutes(
                         fio = user.fio,
                         phone = user.phone,
                         email = user.email,
-                        cardEndDate = client?.cardEndDate?.toString()
+                        cardEndDate = client?.cardEndDate?.toString(),
+                        userTypeId = user.userTypeId
                     )
                 )
             }

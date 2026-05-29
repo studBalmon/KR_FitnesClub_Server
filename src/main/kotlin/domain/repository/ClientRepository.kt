@@ -8,4 +8,6 @@ interface ClientRepository {
 
     fun getByUserId(userId: Int): Client?
 
+    fun getById(clientId: Int): Client?
+
 }

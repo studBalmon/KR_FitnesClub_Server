@@ -37,6 +37,8 @@ fun Application.configureRouting() {
     val getUserByIdUseCase by inject<GetUserByIdUseCase>()
     val userRepository by inject<UserRepository>()
     val clientRepository by inject<ClientRepository>()
+    val updateBookingUseCase by inject<UpdateBookingUseCase>()
+    val getParticipantsByBookingUseCase by inject<GetParticipantsByBookingUseCase>()
 
     routing {
 
@@ -65,7 +67,9 @@ fun Application.configureRouting() {
             getClientByUserIdUseCase,
             getCoachByUserIdUseCase,
             getBookingsByCoachUseCase,
-            searchBookingsByNameUseCase
+            searchBookingsByNameUseCase,
+            updateBookingUseCase,
+            getParticipantsByBookingUseCase
         )
 
         userRoutes(

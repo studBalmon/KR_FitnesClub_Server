@@ -11,7 +11,9 @@ import domain.repository.CoachRepository
 import domain.repository.UserRepository
 import domain.repository.WorkoutRepository
 import domain.usecase.AddClientToBookingUseCase
+import domain.usecase.GetParticipantsByBookingUseCase
 import domain.usecase.LeaveBookingUseCase
+import domain.usecase.UpdateBookingUseCase
 import domain.usecase.CreateBookingUseCase
 import domain.usecase.CreateCoachByUserUseCase
 import domain.usecase.CreateWorkoutUseCase
@@ -62,4 +64,6 @@ val appModule = module {
     single { SearchBookingsByNameUseCase(get()) }
     single { SearchWorkoutsByNameUseCase(get()) }
     single { GetUserByIdUseCase(get()) }
+    single { UpdateBookingUseCase(get()) }
+    single { GetParticipantsByBookingUseCase(get(), get(), get()) }
 }

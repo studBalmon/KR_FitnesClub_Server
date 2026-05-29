@@ -26,6 +26,14 @@ class ClientRepositoryImpl : ClientRepository {
             .singleOrNull()
     }
 
+    override fun getById(clientId: Int): Client? = transaction {
+        ClientTable
+            .selectAll()
+            .where { ClientTable.id eq clientId }
+            .map { it.toClient() }
+            .singleOrNull()
+    }
+
     private fun ResultRow.toClient() = Client(
         id = this[ClientTable.id],
         userId = this[ClientTable.userId],
