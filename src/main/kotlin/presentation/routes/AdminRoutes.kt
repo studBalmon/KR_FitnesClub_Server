@@ -1,5 +1,6 @@
 package presentation.routes
 
+import com.example.data.seed.TestDataSeeder
 import com.example.util.PasswordHasher
 import domain.model.User
 import domain.model.Workout
@@ -127,6 +128,22 @@ fun Route.adminRoutes(
             // ПОЛЬЗОВАТЕЛИ
             // ════════════════════════════════════════════════════════════════
 
+            // Список тренеров (id == booking.coachId) — для аналитики
+            get("/coaches") {
+                if (!checkAdmin(call.role())) { call.respond(HttpStatusCode.Forbidden, mapOf("error" to "Forbidden")); return@get }
+                call.respond(coachRepository.getAllCoaches().map {
+                    AdminCoachResponse(it.id, it.userId, it.fio, it.coachTypeName)
+                })
+            }
+
+            // Список клиентов (id == booking.clientIds) — для аналитики
+            get("/clients") {
+                if (!checkAdmin(call.role())) { call.respond(HttpStatusCode.Forbidden, mapOf("error" to "Forbidden")); return@get }
+                call.respond(clientRepository.getAllClients().map {
+                    AdminClientResponse(it.id, it.userId, it.fio, it.cardEndDate.toString())
+                })
+            }
+
             get("/users") {
                 if (!checkAdmin(call.role())) { call.respond(HttpStatusCode.Forbidden, mapOf("error" to "Forbidden")); return@get }
                 val users = userRepository.getAll().map { user ->
@@ -138,10 +155,25 @@ fun Route.adminRoutes(
                         email = user.email,
                         userTypeId = user.userTypeId,
                         roleName = roleName,
-                        coachTypeId = if (roleName == "COACH") coachRepository.getCoachTypeByUserId(user.id) else null
+                        coachTypeId = if (roleName == "COACH") coachRepository.getCoachTypeByUserId(user.id) else null,
+                        cardEndDate = if (roleName == "CLIENT") clientRepository.getByUserId(user.id)?.cardEndDate?.toString() else null
                     )
                 }
                 call.respond(users)
+            }
+
+            // Продление абонемента клиента
+            patch("/clients/{userId}/extend") {
+                if (!checkAdmin(call.role())) { call.respond(HttpStatusCode.Forbidden, mapOf("error" to "Forbidden")); return@patch }
+                val userId = call.parameters["userId"]!!.toInt()
+                val req = call.receive<ExtendSubscriptionRequest>()
+                if (req.months <= 0) {
+                    call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Количество месяцев должно быть положительным"))
+                    return@patch
+                }
+                val newDate = clientRepository.extendByUserId(userId, req.months)
+                if (newDate != null) call.respond(mapOf("cardEndDate" to newDate.toString()))
+                else call.respond(HttpStatusCode.NotFound, mapOf("error" to "Клиент не найден"))
             }
 
             post("/users") {
@@ -200,6 +232,30 @@ fun Route.adminRoutes(
                     call.respond(mapOf("deleted" to userRepository.delete(id)))
                 } catch (e: Exception) {
                     call.respond(HttpStatusCode.Conflict, mapOf("error" to "Нельзя удалить: у пользователя есть связанные данные"))
+                }
+            }
+
+            // ════════════════════════════════════════════════════════════════
+            // ТЕСТОВЫЕ ДАННЫЕ (для проверки всех функций)
+            // ════════════════════════════════════════════════════════════════
+
+            get("/test-data/status") {
+                if (!checkAdmin(call.role())) { call.respond(HttpStatusCode.Forbidden, mapOf("error" to "Forbidden")); return@get }
+                call.respond(TestDataStatusResponse(TestDataSeeder.isPresent()))
+            }
+
+            post("/test-data/toggle") {
+                if (!checkAdmin(call.role())) { call.respond(HttpStatusCode.Forbidden, mapOf("error" to "Forbidden")); return@post }
+                try {
+                    if (TestDataSeeder.isPresent()) {
+                        TestDataSeeder.clear()
+                        call.respond(TestDataToggleResponse("cleared", "Тестовые данные удалены"))
+                    } else {
+                        TestDataSeeder.seed()
+                        call.respond(TestDataToggleResponse("seeded", "Тестовые данные добавлены"))
+                    }
+                } catch (e: Exception) {
+                    call.respond(HttpStatusCode.InternalServerError, mapOf("error" to (e.message ?: "Ошибка")))
                 }
             }
         }

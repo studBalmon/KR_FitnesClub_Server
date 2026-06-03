@@ -10,8 +10,36 @@ data class AdminUserResponse(
     val email: String,
     val userTypeId: Int,
     val roleName: String,
-    val coachTypeId: Int?
+    val coachTypeId: Int?,
+    val cardEndDate: String? = null   // только для клиентов, ISO-дата
 )
+
+@Serializable
+data class ExtendSubscriptionRequest(
+    val months: Int
+)
+
+@Serializable
+data class AdminCoachResponse(
+    val id: Int,            // coaches.id (== booking.coachId)
+    val userId: Int,
+    val fio: String,
+    val coachTypeName: String? = null
+)
+
+@Serializable
+data class AdminClientResponse(
+    val id: Int,            // clients.id (== booking.clientIds)
+    val userId: Int,
+    val fio: String,
+    val cardEndDate: String
+)
+
+@Serializable
+data class TestDataStatusResponse(val present: Boolean)
+
+@Serializable
+data class TestDataToggleResponse(val action: String, val message: String)
 
 @Serializable
 data class AdminCreateUserRequest(

@@ -82,6 +82,8 @@ fun Application.configureRouting() {
             clientRepository
         )
 
+        coachRoutes(coachRepository)
+
         adminRoutes(
             userRepository,
             clientRepository,

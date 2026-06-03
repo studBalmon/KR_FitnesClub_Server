@@ -2,6 +2,8 @@ package data.repository
 
 import com.example.data.tables.CoachTable
 import com.example.data.tables.CoachTypeTable
+import com.example.data.tables.UserTable
+import domain.repository.CoachBrief
 import domain.repository.CoachRepository
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
@@ -40,6 +42,19 @@ class CoachRepositoryImpl : CoachRepository {
     override fun deleteByUserId(userId: Int) = transaction {
         CoachTable.deleteWhere { CoachTable.userId eq userId }
         Unit
+    }
+
+    override fun getAllCoaches(): List<CoachBrief> = transaction {
+        val typeNames = CoachTypeTable.selectAll()
+            .associate { it[CoachTypeTable.id] to it[CoachTypeTable.name] }
+        (CoachTable innerJoin UserTable).selectAll().map {
+            CoachBrief(
+                id = it[CoachTable.id],
+                userId = it[CoachTable.userId],
+                fio = it[UserTable.fio],
+                coachTypeName = typeNames[it[CoachTable.coachTypeId]]
+            )
+        }
     }
 
     override fun getAllCoachTypes(): List<Pair<Int, String>> = transaction {
