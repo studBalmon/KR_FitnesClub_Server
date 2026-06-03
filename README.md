@@ -63,8 +63,6 @@ docker-compose logs -f db
 | `DB_PASSWORD` | `1234` | Пароль PostgreSQL |
 | `JWT_SECRET` | `change-me-in-production` | Секрет для подписи токенов |
 
-> ⚠️ Обязательно смените `JWT_SECRET` и пароль БД перед деплоем в продакшн.
-
 ---
 
 ## Архитектура
@@ -266,5 +264,3 @@ java -jar build/libs/Backend-1.0.0-SNAPSHOT.jar
   └─ копируем только JAR
   └─ java -jar app.jar
 ```
-
-Зависимости Gradle кешируются отдельным Docker-слоем — повторная сборка при изменении только исходников занимает ~30 секунд вместо нескольких минут.
