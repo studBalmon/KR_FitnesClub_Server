@@ -52,7 +52,8 @@ class CoachRepositoryImpl : CoachRepository {
                 id = it[CoachTable.id],
                 userId = it[CoachTable.userId],
                 fio = it[UserTable.fio],
-                coachTypeName = typeNames[it[CoachTable.coachTypeId]]
+                coachTypeName = typeNames[it[CoachTable.coachTypeId]],
+                phone = it[UserTable.phone]
             )
         }
     }

@@ -1,11 +1,11 @@
 package domain.repository
 
-/** Краткие данные тренера для аналитики: id = coaches.id (совпадает с booking.coachId). */
 data class CoachBrief(
     val id: Int,
     val userId: Int,
     val fio: String,
-    val coachTypeName: String?
+    val coachTypeName: String?,
+    val phone: String = ""
 )
 
 interface CoachRepository {

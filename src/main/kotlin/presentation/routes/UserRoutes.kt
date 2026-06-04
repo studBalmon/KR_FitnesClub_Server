@@ -22,7 +22,6 @@ fun Route.userRoutes(
     authenticate("auth-jwt") {
         route("/users") {
 
-            // Профиль текущего пользователя + дата абонемента
             get("/me/profile") {
                 val userId = call.userId()
                     ?: return@get call.respond(HttpStatusCode.Unauthorized, mapOf("error" to "Unauthorized"))
@@ -44,7 +43,6 @@ fun Route.userRoutes(
                 )
             }
 
-            // Токен-пропуск текущего пользователя (для QR на входе/выходе)
             get("/me/pass-token") {
                 val userId = call.userId()
                     ?: return@get call.respond(HttpStatusCode.Unauthorized, mapOf("error" to "Unauthorized"))

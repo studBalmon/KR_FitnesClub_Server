@@ -11,7 +11,7 @@ data class AdminUserResponse(
     val userTypeId: Int,
     val roleName: String,
     val coachTypeId: Int?,
-    val cardEndDate: String? = null   // только для клиентов, ISO-дата
+    val cardEndDate: String? = null   
 )
 
 @Serializable
@@ -21,25 +21,27 @@ data class ExtendSubscriptionRequest(
 
 @Serializable
 data class AdminCoachResponse(
-    val id: Int,            // coaches.id (== booking.coachId)
+    val id: Int,            
     val userId: Int,
     val fio: String,
-    val coachTypeName: String? = null
+    val coachTypeName: String? = null,
+    val phone: String = ""
 )
 
 @Serializable
 data class AdminClientResponse(
-    val id: Int,            // clients.id (== booking.clientIds)
+    val id: Int,            
     val userId: Int,
     val fio: String,
-    val cardEndDate: String
+    val cardEndDate: String,
+    val phone: String = ""
 )
 
 @Serializable
 data class ScanRequest(val token: String, val force: Boolean = false)
 
 @Serializable
-data class ScanResponse(val action: String, val fio: String)   // "entered" | "exited" | "warn_quick_exit"
+data class ScanResponse(val action: String, val fio: String)   
 
 @Serializable
 data class InsideVisitResponse(
@@ -47,8 +49,8 @@ data class InsideVisitResponse(
     val fio: String,
     val entryTime: String,
     val minutesInside: Long,
-    val nextClassName: String? = null,   // ближайшее сегодняшнее занятие клиента
-    val nextClassTime: String? = null    // время "HH:mm"
+    val nextClassName: String? = null,   
+    val nextClassTime: String? = null    
 )
 
 @Serializable
@@ -73,7 +75,7 @@ data class AdminUpdateUserRequest(
     val phone: String,
     val email: String,
     val newPassword: String? = null,
-    val coachTypeId: Int? = null   // для тренеров
+    val coachTypeId: Int? = null   
 )
 
 @Serializable

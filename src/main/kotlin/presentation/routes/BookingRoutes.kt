@@ -119,7 +119,7 @@ fun Route.bookingRoutes(
                     Booking(
                         id = 0,
                         coachId = coachId,
-                        workoutId = 1,   // значение по умолчанию
+                        workoutId = 1,   
                         slots = request.slots,
                         name = request.name,
                         extra = request.extra,
@@ -198,7 +198,6 @@ fun Route.bookingRoutes(
                 val client = clientRepository.getByUserId(userId)
                     ?: return@post call.respond(HttpStatusCode.NotFound, mapOf("error" to "Client not found"))
 
-                // Истёкший абонемент не позволяет записаться на занятие
                 if (client.cardEndDate.isBefore(LocalDate.now())) {
                     call.respond(HttpStatusCode.Forbidden, mapOf("error" to "Абонемент неактивен"))
                     return@post

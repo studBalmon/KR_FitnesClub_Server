@@ -12,7 +12,7 @@ object WorkoutTable : Table("workouts") {
 
     val description = varchar("description", 255).nullable()
 
-    val duration = integer("duration") // минут
+    val duration = integer("duration") 
 
     override val primaryKey = PrimaryKey(id)
 }

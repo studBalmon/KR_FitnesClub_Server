@@ -21,7 +21,7 @@ fun Route.workoutRoutes(
 
         route("/workouts") {
 
-            // ВСЕ
+
             get {
                 call.respond(getAllWorkoutsUseCase())
             }
@@ -49,7 +49,7 @@ fun Route.workoutRoutes(
                 }
             }
 
-            // COACH + ADMIN
+
             post {
                 val role = call.role()
 
@@ -73,7 +73,7 @@ fun Route.workoutRoutes(
                 call.respond(mapOf("id" to id))
             }
 
-            // ADMIN
+
             delete("/{id}") {
                 val role = call.role()
 

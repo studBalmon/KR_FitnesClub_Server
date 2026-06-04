@@ -47,7 +47,8 @@ class ClientRepositoryImpl : ClientRepository {
                 id = it[ClientTable.id],
                 userId = it[ClientTable.userId],
                 fio = it[UserTable.fio],
-                cardEndDate = it[ClientTable.cardEndDate]
+                cardEndDate = it[ClientTable.cardEndDate],
+                phone = it[UserTable.phone]
             )
         }
     }
@@ -59,7 +60,6 @@ class ClientRepositoryImpl : ClientRepository {
             .map { it[ClientTable.cardEndDate] }
             .singleOrNull() ?: return@transaction null
 
-        // если абонемент уже истёк — продлеваем от сегодня, иначе от текущей даты окончания
         val base = if (current.isBefore(LocalDate.now())) LocalDate.now() else current
         val newDate = base.plusMonths(months.toLong())
 

@@ -49,9 +49,9 @@ object TestDataSeeder {
             ClientDef("Анна Активова (тест)",  "client1", today.plusDays(90)),
             ClientDef("Борис Активов (тест)",  "client2", today.plusDays(30)),
             ClientDef("Вера Годовая (тест)",   "client3", today.plusDays(200)),
-            ClientDef("Глеб Скоро (тест)",     "client4", today.plusDays(3)),   // истекает < 7 дней
-            ClientDef("Дарья Почти (тест)",    "client5", today.plusDays(6)),   // истекает < 7 дней
-            ClientDef("Егор Просрочен (тест)", "client6", today.minusDays(5))   // истёк
+            ClientDef("Глеб Скоро (тест)",     "client4", today.plusDays(3)),   
+            ClientDef("Дарья Почти (тест)",    "client5", today.plusDays(6)),   
+            ClientDef("Егор Просрочен (тест)", "client6", today.minusDays(5))   
         )
         val clientIds = clientDefs.mapIndexed { i, def ->
             val uid = insertUser(def.fio, "+7910000000${i + 1}", "${def.login}$EMAIL_DOMAIN", 3)
@@ -63,17 +63,17 @@ object TestDataSeeder {
 
         val bookingDefs = listOf(
             BDef(coachA, wBench, 10,  0,  9, 8),
-            BDef(coachA, wSquat,  8,  0, 18, 8),   // 100%
+            BDef(coachA, wSquat,  8,  0, 18, 8),   
             BDef(coachB, wRun,   10,  1, 10, 3),
-            BDef(coachB, wBike,   6,  1, 19, 0),   // пусто
+            BDef(coachB, wBike,   6,  1, 19, 0),   
             BDef(coachA, wBench, 12,  2,  8, 6),
             BDef(coachB, wRun,   10,  3, 11, 9),
-            BDef(coachA, wSquat,  5,  4, 17, 5),   // 100%
+            BDef(coachA, wSquat,  5,  4, 17, 5),   
             BDef(coachB, wBike,   8,  5, 20, 4),
             BDef(coachA, wBench, 10,  6, 12, 7),
             BDef(coachB, wRun,   10,  7,  9, 2),
-            BDef(coachA, wSquat,  8, -2, 10, 6),   // прошедшее
-            BDef(coachB, wBike,   6, -1, 18, 3)    // прошедшее
+            BDef(coachA, wSquat,  8, -2, 10, 6),   
+            BDef(coachB, wBike,   6, -1, 18, 3)    
         )
         bookingDefs.forEachIndexed { idx, d ->
             val time = today.plusDays(d.dayOffset.toLong()).atTime(d.hour, 0)
