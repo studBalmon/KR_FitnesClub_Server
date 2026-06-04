@@ -1,6 +1,7 @@
 package presentation.routes
 
 import domain.model.Booking
+import domain.repository.ClientRepository
 import domain.usecase.*
 import presentation.dto.CoachBookingRequest
 import io.ktor.http.*
@@ -10,6 +11,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import presentation.util.role
 import presentation.util.userId
+import java.time.LocalDate
 
 fun Route.bookingRoutes(
     createBookingUseCase: CreateBookingUseCase,
@@ -24,14 +26,15 @@ fun Route.bookingRoutes(
     getBookingsByCoachUseCase: GetBookingsByCoachUseCase,
     searchBookingsByNameUseCase: SearchBookingsByNameUseCase,
     updateBookingUseCase: UpdateBookingUseCase,
-    getParticipantsByBookingUseCase: GetParticipantsByBookingUseCase
+    getParticipantsByBookingUseCase: GetParticipantsByBookingUseCase,
+    removeClientFromAllBookingsUseCase: RemoveClientFromAllBookingsUseCase,
+    clientRepository: ClientRepository
 ) {
 
     authenticate("auth-jwt") {
 
         route("/bookings") {
 
-            // ── Все занятия (любая роль) ──────────────────────────────────────
             get {
                 if (call.role() == null) {
                     call.respond(HttpStatusCode.Unauthorized, mapOf("error" to "Unauthorized"))
@@ -40,7 +43,6 @@ fun Route.bookingRoutes(
                 call.respond(getBookingsUseCase())
             }
 
-            // ── Занятия клиента ───────────────────────────────────────────────
             get("/my") {
                 if (call.role() != "CLIENT") {
                     call.respond(HttpStatusCode.Forbidden, mapOf("error" to "Forbidden"))
@@ -48,12 +50,18 @@ fun Route.bookingRoutes(
                 }
                 val userId = call.userId()
                     ?: return@get call.respond(HttpStatusCode.Unauthorized, mapOf("error" to "Unauthorized"))
-                val clientId = getClientByUserIdUseCase(userId)
+                val client = clientRepository.getByUserId(userId)
                     ?: return@get call.respond(HttpStatusCode.NotFound, mapOf("error" to "Client not found"))
-                call.respond(getBookingsByClientUseCase(clientId))
+
+                if (client.cardEndDate.isBefore(LocalDate.now())) {
+                    removeClientFromAllBookingsUseCase(client.id)
+                    call.respond(emptyList<Booking>())
+                    return@get
+                }
+
+                call.respond(getBookingsByClientUseCase(client.id))
             }
 
-            // ── Занятия тренера (свои) ────────────────────────────────────────
             get("/coach") {
                 if (call.role() != "COACH" && call.role() != "ADMIN") {
                     call.respond(HttpStatusCode.Forbidden, mapOf("error" to "Forbidden"))
@@ -66,7 +74,6 @@ fun Route.bookingRoutes(
                 call.respond(getBookingsByCoachUseCase(coachId))
             }
 
-            // ── Поиск ─────────────────────────────────────────────────────────
             get("/search") {
                 if (call.role() == null) {
                     call.respond(HttpStatusCode.Unauthorized, mapOf("error" to "Unauthorized"))
@@ -80,7 +87,6 @@ fun Route.bookingRoutes(
                 call.respond(searchBookingsByNameUseCase(query))
             }
 
-            // ── Занятие по ID ─────────────────────────────────────────────────
             get("/{id}") {
                 val id = call.parameters["id"]!!.toInt()
                 val booking = getBookingByIdUseCase(id)
@@ -88,7 +94,6 @@ fun Route.bookingRoutes(
                 else call.respond(HttpStatusCode.NotFound, mapOf("error" to "Booking not found"))
             }
 
-            // ── Участники занятия ─────────────────────────────────────────────
             get("/{id}/participants") {
                 if (call.role() != "COACH" && call.role() != "ADMIN") {
                     call.respond(HttpStatusCode.Forbidden, mapOf("error" to "Forbidden"))
@@ -98,7 +103,6 @@ fun Route.bookingRoutes(
                 call.respond(getParticipantsByBookingUseCase(id))
             }
 
-            // ── Создать занятие (тренер — coachId берётся из JWT) ─────────────
             post {
                 val role = call.role()
                 if (role != "COACH" && role != "ADMIN") {
@@ -125,7 +129,6 @@ fun Route.bookingRoutes(
                 call.respond(HttpStatusCode.Created, mapOf("id" to id))
             }
 
-            // ── Редактировать занятие (тренер — только своё; admin — любое) ──────
             patch("/{id}") {
                 val role = call.role()
                 if (role != "COACH" && role != "ADMIN") {
@@ -137,7 +140,6 @@ fun Route.bookingRoutes(
                 val existing = getBookingByIdUseCase(id)
                     ?: return@patch call.respond(HttpStatusCode.NotFound, mapOf("error" to "Booking not found"))
 
-                // Тренер может редактировать только своё занятие
                 if (role == "COACH") {
                     val userId = call.userId()
                         ?: return@patch call.respond(HttpStatusCode.Unauthorized, mapOf("error" to "Unauthorized"))
@@ -162,7 +164,6 @@ fun Route.bookingRoutes(
                 else call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Не удалось обновить"))
             }
 
-            // ── Удалить занятие (тренер — только своё; admin — любое) ─────────
             delete("/{id}") {
                 val role = call.role()
                 if (role != "ADMIN" && role != "COACH") {
@@ -187,7 +188,6 @@ fun Route.bookingRoutes(
                 call.respond(mapOf("deleted" to deleteBookingUseCase(id)))
             }
 
-            // ── Записаться (CLIENT) ───────────────────────────────────────────
             post("/{id}/join") {
                 if (call.role() != "CLIENT") {
                     call.respond(HttpStatusCode.Forbidden, mapOf("error" to "Forbidden"))
@@ -195,15 +195,29 @@ fun Route.bookingRoutes(
                 }
                 val userId = call.userId()
                     ?: return@post call.respond(HttpStatusCode.Unauthorized, mapOf("error" to "Unauthorized"))
-                val clientId = getClientByUserIdUseCase(userId)
+                val client = clientRepository.getByUserId(userId)
                     ?: return@post call.respond(HttpStatusCode.NotFound, mapOf("error" to "Client not found"))
+
+                // Истёкший абонемент не позволяет записаться на занятие
+                if (client.cardEndDate.isBefore(LocalDate.now())) {
+                    call.respond(HttpStatusCode.Forbidden, mapOf("error" to "Абонемент неактивен"))
+                    return@post
+                }
+
                 val bookingId = call.parameters["id"]!!.toInt()
-                val success = addClientToBookingUseCase(bookingId, clientId)
+                val booking = getBookingByIdUseCase(bookingId)
+                    ?: return@post call.respond(HttpStatusCode.NotFound, mapOf("error" to "Booking not found"))
+
+                if (booking.time.toLocalDate().isBefore(LocalDate.now())) {
+                    call.respond(HttpStatusCode.Conflict, mapOf("error" to "Занятие уже прошло"))
+                    return@post
+                }
+
+                val success = addClientToBookingUseCase(bookingId, client.id)
                 if (success) call.respond(mapOf("message" to "Вы успешно записаны"))
                 else call.respond(HttpStatusCode.Conflict, mapOf("error" to "Вы уже записаны или нет свободных мест"))
             }
 
-            // ── Отменить запись (CLIENT) ──────────────────────────────────────
             delete("/{id}/join") {
                 if (call.role() != "CLIENT") {
                     call.respond(HttpStatusCode.Forbidden, mapOf("error" to "Forbidden"))

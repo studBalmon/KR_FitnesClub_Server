@@ -13,6 +13,7 @@ import domain.repository.WorkoutRepository
 import domain.usecase.AddClientToBookingUseCase
 import domain.usecase.GetParticipantsByBookingUseCase
 import domain.usecase.LeaveBookingUseCase
+import domain.usecase.RemoveClientFromAllBookingsUseCase
 import domain.usecase.UpdateBookingUseCase
 import domain.usecase.CreateBookingUseCase
 import domain.usecase.CreateCoachByUserUseCase
@@ -57,6 +58,7 @@ val appModule = module {
     single { JoinBookingUseCase(get()) }
     single { AddClientToBookingUseCase(get()) }
     single { LeaveBookingUseCase(get()) }
+    single { RemoveClientFromAllBookingsUseCase(get()) }
     single { GetClientByUserIdUseCase(get()) }
     single { GetCoachByUserIdUseCase(get()) }
     single { GetBookingsByCoachUseCase(get()) }

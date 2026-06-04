@@ -94,6 +94,10 @@ class BookingRepositoryImpl : BookingRepository {
         } > 0
     }
 
+    override fun removeAllByClient(clientId: Int): Int = transaction {
+        BookingClientTable.deleteWhere { BookingClientTable.clientId eq clientId }
+    }
+
     override fun addClientToBooking(bookingId: Int, clientId: Int): Boolean = transaction {
 
         val exists = BookingClientTable.selectAll().where {

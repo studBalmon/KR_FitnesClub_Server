@@ -6,17 +6,16 @@ import com.example.presentation.dto.LoginRequest
 import presentation.dto.RegisterRequest
 import com.example.util.JwtConfig
 import com.example.util.PasswordHasher
-import domain.usecase.CreateCoachByUserUseCase
 import io.ktor.http.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import presentation.dto.CoachRegisterRequest
+
+private const val CLIENT_USER_TYPE_ID = 3
 
 fun Route.authRoutes(
     loginUserUseCase: LoginUserUseCase,
     registerUserUseCase: RegisterUserUseCase,
-    createCoachByUserUseCase: CreateCoachByUserUseCase,
 ) {
 
     route("/auth") {
@@ -29,31 +28,9 @@ fun Route.authRoutes(
                     password = PasswordHasher.hash(request.password),
                     fio = request.fio,
                     phone = request.phone,
-                    userTypeId = request.userTypeId
+                    userTypeId = CLIENT_USER_TYPE_ID
                 )
                 call.respond(HttpStatusCode.Created, mapOf("message" to "User created"))
-            } catch (e: Exception) {
-                val message = e.message ?: ""
-                if (message.contains("unique", ignoreCase = true) || message.contains("duplicate", ignoreCase = true)) {
-                    call.respond(HttpStatusCode.Conflict, mapOf("error" to "Пользователь с таким email или телефоном уже существует"))
-                } else {
-                    call.respond(HttpStatusCode.BadRequest, mapOf("error" to message))
-                }
-            }
-        }
-
-        post("/register/coach") {
-            val request = call.receive<CoachRegisterRequest>()
-            try {
-                createCoachByUserUseCase(
-                    email = request.email,
-                    password = PasswordHasher.hash(request.password),
-                    fio = request.fio,
-                    phone = request.phone,
-                    userTypeId = 2,
-                    coachTypeId = request.coachTypeId
-                )
-                call.respond(HttpStatusCode.Created, mapOf("message" to "Coach created"))
             } catch (e: Exception) {
                 val message = e.message ?: ""
                 if (message.contains("unique", ignoreCase = true) || message.contains("duplicate", ignoreCase = true)) {
