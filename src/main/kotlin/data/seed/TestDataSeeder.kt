@@ -5,6 +5,7 @@ import com.example.data.tables.ClientTable
 import com.example.data.tables.CoachTable
 import com.example.data.tables.CoachTypeTable
 import com.example.data.tables.UserTable
+import com.example.data.tables.VisitTable
 import com.example.data.tables.WorkoutTable
 import com.example.util.PasswordHasher
 import data.tables.BookingClientTable
@@ -111,6 +112,7 @@ object TestDataSeeder {
         BookingTable.deleteWhere { BookingTable.name like "$PREFIX%" }
 
         if (testUserIds.isNotEmpty()) {
+            VisitTable.deleteWhere { VisitTable.userId inList testUserIds }
             ClientTable.deleteWhere { ClientTable.userId inList testUserIds }
             CoachTable.deleteWhere { CoachTable.userId inList testUserIds }
         }

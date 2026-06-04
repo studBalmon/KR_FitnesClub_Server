@@ -11,3 +11,9 @@ data class ProfileResponse(
     val cardEndDate: String?,  // null если не CLIENT
     val userTypeId: Int        // 2=COACH, 3=CLIENT
 )
+
+@Serializable
+data class PassTokenResponse(
+    val token: String,
+    val fio: String
+)

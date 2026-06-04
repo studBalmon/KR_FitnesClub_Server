@@ -1,9 +1,11 @@
 package presentation.routes
 
 import com.example.presentation.routes.userRoutes
+import domain.repository.BookingRepository
 import domain.repository.ClientRepository
 import domain.repository.CoachRepository
 import domain.repository.UserRepository
+import domain.repository.VisitRepository
 import domain.repository.WorkoutRepository
 import domain.usecase.*
 import domain.usecase.LeaveBookingUseCase
@@ -41,6 +43,8 @@ fun Application.configureRouting() {
     val clientRepository by inject<ClientRepository>()
     val coachRepository by inject<CoachRepository>()
     val workoutRepository by inject<WorkoutRepository>()
+    val visitRepository by inject<VisitRepository>()
+    val bookingRepository by inject<BookingRepository>()
     val updateBookingUseCase by inject<UpdateBookingUseCase>()
     val getParticipantsByBookingUseCase by inject<GetParticipantsByBookingUseCase>()
 
@@ -89,7 +93,9 @@ fun Application.configureRouting() {
             userRepository,
             clientRepository,
             coachRepository,
-            workoutRepository
+            workoutRepository,
+            visitRepository,
+            bookingRepository
         )
     }
 }

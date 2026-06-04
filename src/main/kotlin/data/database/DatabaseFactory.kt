@@ -37,7 +37,8 @@ object DatabaseFactory {
                 WorkoutTable,
                 ClientTable,
                 BookingTable,
-                BookingClientTable
+                BookingClientTable,
+                VisitTable
             )
         }
 

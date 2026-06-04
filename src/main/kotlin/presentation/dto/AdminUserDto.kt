@@ -36,6 +36,22 @@ data class AdminClientResponse(
 )
 
 @Serializable
+data class ScanRequest(val token: String, val force: Boolean = false)
+
+@Serializable
+data class ScanResponse(val action: String, val fio: String)   // "entered" | "exited" | "warn_quick_exit"
+
+@Serializable
+data class InsideVisitResponse(
+    val userId: Int,
+    val fio: String,
+    val entryTime: String,
+    val minutesInside: Long,
+    val nextClassName: String? = null,   // ближайшее сегодняшнее занятие клиента
+    val nextClassTime: String? = null    // время "HH:mm"
+)
+
+@Serializable
 data class TestDataStatusResponse(val present: Boolean)
 
 @Serializable

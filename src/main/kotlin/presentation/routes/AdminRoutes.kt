@@ -1,13 +1,18 @@
 package presentation.routes
 
 import com.example.data.seed.TestDataSeeder
+import com.example.util.JwtConfig
 import com.example.util.PasswordHasher
 import domain.model.User
 import domain.model.Workout
+import domain.repository.BookingRepository
 import domain.repository.ClientRepository
 import domain.repository.CoachRepository
 import domain.repository.UserRepository
+import domain.repository.VisitRepository
 import domain.repository.WorkoutRepository
+import java.time.Duration
+import java.time.LocalDateTime
 import io.ktor.http.*
 import io.ktor.server.auth.*
 import io.ktor.server.request.*
@@ -20,7 +25,9 @@ fun Route.adminRoutes(
     userRepository: UserRepository,
     clientRepository: ClientRepository,
     coachRepository: CoachRepository,
-    workoutRepository: WorkoutRepository
+    workoutRepository: WorkoutRepository,
+    visitRepository: VisitRepository,
+    bookingRepository: BookingRepository
 ) {
     authenticate("auth-jwt") {
         route("/admin") {
@@ -224,6 +231,7 @@ fun Route.adminRoutes(
                 val id = call.parameters["id"]!!.toInt()
                 userRepository.getById(id) ?: return@delete call.respond(HttpStatusCode.NotFound, mapOf("error" to "User not found"))
                 try {
+                    visitRepository.deleteByUser(id)   // снять связанные посещения, иначе FK не даст удалить
                     val roleName = userRepository.getRoleByUserId(id)
                     when (roleName) {
                         "CLIENT" -> clientRepository.deleteByUserId(id)
@@ -232,6 +240,62 @@ fun Route.adminRoutes(
                     call.respond(mapOf("deleted" to userRepository.delete(id)))
                 } catch (e: Exception) {
                     call.respond(HttpStatusCode.Conflict, mapOf("error" to "Нельзя удалить: у пользователя есть связанные данные"))
+                }
+            }
+
+            // ════════════════════════════════════════════════════════════════
+            // ПОСЕЩЕНИЯ (кто внутри / скан QR)
+            // ════════════════════════════════════════════════════════════════
+
+            get("/visits/inside") {
+                if (!checkAdmin(call.role())) { call.respond(HttpStatusCode.Forbidden, mapOf("error" to "Forbidden")); return@get }
+                // авто-закрытие зависших посещений (> 16 часов) при открытии экрана
+                visitRepository.autoCloseStale(16)
+                val now = LocalDateTime.now()
+                val today = now.toLocalDate()
+                call.respond(visitRepository.getInside().map { v ->
+                    // для клиента — ближайшее сегодняшнее занятие, на которое он записан
+                    val client = clientRepository.getByUserId(v.userId)
+                    val next = if (client != null) {
+                        bookingRepository.getByClient(client.id)
+                            .filter { it.time.toLocalDate() == today && !it.time.isBefore(now) }
+                            .minByOrNull { it.time }
+                    } else null
+                    InsideVisitResponse(
+                        userId = v.userId,
+                        fio = v.fio,
+                        entryTime = v.entryTime.toString(),
+                        minutesInside = Duration.between(v.entryTime, now).toMinutes(),
+                        nextClassName = next?.name,
+                        nextClassTime = next?.let { "%02d:%02d".format(it.time.hour, it.time.minute) }
+                    )
+                })
+            }
+
+            post("/visits/scan") {
+                if (!checkAdmin(call.role())) { call.respond(HttpStatusCode.Forbidden, mapOf("error" to "Forbidden")); return@post }
+                val req = call.receive<ScanRequest>()
+                // QR содержит подписанный токен-пропуск, а не «голый» id — нельзя подделать чужой id
+                val userId = JwtConfig.verifyPassToken(req.token)?.toInt()
+                    ?: return@post call.respond(HttpStatusCode.BadRequest, mapOf("error" to "QR-код недействителен или истёк"))
+                val user = userRepository.getById(userId)
+                    ?: return@post call.respond(HttpStatusCode.NotFound, mapOf("error" to "Пользователь не найден"))
+                // закрываем зависшие посещения перед toggle, иначе вернувшийся через сутки
+                // пользователь со «старым» открытым визитом был бы ошибочно отмечен на выход
+                visitRepository.autoCloseStale(16)
+                val openVisit = visitRepository.findOpenVisit(userId)
+                if (openVisit == null) {
+                    visitRepository.checkIn(userId)
+                    call.respond(ScanResponse("entered", user.fio))
+                } else {
+                    val seconds = Duration.between(openVisit.entryTime, LocalDateTime.now()).seconds
+                    if (seconds < 60 && !req.force) {
+                        // вошёл менее минуты назад — вероятно, случайный повторный скан
+                        call.respond(ScanResponse("warn_quick_exit", user.fio))
+                    } else {
+                        visitRepository.checkOut(openVisit.id)
+                        call.respond(ScanResponse("exited", user.fio))
+                    }
                 }
             }
 

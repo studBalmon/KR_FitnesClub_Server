@@ -4,11 +4,13 @@ import com.example.data.repository.UserRepositoryImpl
 import data.repository.BookingRepositoryImpl
 import data.repository.ClientRepositoryImpl
 import data.repository.CoachRepositoryImpl
+import data.repository.VisitRepositoryImpl
 import data.repository.WorkoutRepositoryImpl
 import domain.repository.BookingRepository
 import domain.repository.ClientRepository
 import domain.repository.CoachRepository
 import domain.repository.UserRepository
+import domain.repository.VisitRepository
 import domain.repository.WorkoutRepository
 import domain.usecase.AddClientToBookingUseCase
 import domain.usecase.GetParticipantsByBookingUseCase
@@ -43,6 +45,7 @@ val appModule = module {
     single<BookingRepository> { BookingRepositoryImpl() }
     single<ClientRepository> { ClientRepositoryImpl() }
     single<CoachRepository> { CoachRepositoryImpl() }
+    single<VisitRepository> { VisitRepositoryImpl() }
 
     single { LoginUserUseCase(get()) }
     single { RegisterUserUseCase(get(), get()) }
